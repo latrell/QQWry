@@ -30,9 +30,9 @@ class QQWry
 		$this->file = $file;
 		$this->fd = fopen($file, 'rb');
 
-		$this->index_start_offset = join('', unpack('L', $this->read_offset(4, 0)));
+		$this->index_start_offset = join('', unpack('L', $this->readOffset(4, 0)));
 
-		$this->index_end_offset = join('', unpack('L', $this->read_offset(4)));
+		$this->index_end_offset = join('', unpack('L', $this->readOffset(4)));
 
 		$this->total = ($this->index_end_offset - $this->index_start_offset) / 7 + 1;
 	}
@@ -50,7 +50,7 @@ class QQWry
 	 * @param number $nip
 	 * @return string
 	 */
-	public function inet_ntoa($nip)
+	public function ntoa($nip)
 	{
 		$ip = array();
 		for ($i = 3; $i > 0; $i --) {
@@ -83,15 +83,15 @@ class QQWry
 		$ip_num = $ip_split[0] * (256 * 256 * 256) + $ip_split[1] * (256 * 256) + $ip_split[2] * 256 + $ip_split[3];
 		$ip_find = $this->find($ip_num, 0, $this->total);
 		$ip_offset = $this->index_start_offset + $ip_find * 7 + 4;
-		$ip_record_offset = $this->read_offset(3, $ip_offset);
+		$ip_record_offset = $this->readOffset(3, $ip_offset);
 		$ip_record_offset = join('', unpack('L', $ip_record_offset . chr(0)));
-		return $this->read_record($ip_record_offset);
+		return $this->readRecord($ip_record_offset);
 	}
 
 	/**
 	 * 读取记录
 	 */
-	protected function read_record($offset)
+	protected function readRecord($offset)
 	{
 		$record = array(
 			'country' => '',
@@ -100,40 +100,40 @@ class QQWry
 
 		$offset = $offset + 4;
 
-		$flag = ord($this->read_offset(1, $offset));
+		$flag = ord($this->readOffset(1, $offset));
 
 		switch ($flag) {
 			case 1:
-				$location_offset = $this->read_offset(3, $offset + 1);
+				$location_offset = $this->readOffset(3, $offset + 1);
 				$location_offset = join('', unpack('L', $location_offset . chr(0)));
 
-				$sub_flag = ord($this->read_offset(1, $location_offset));
+				$sub_flag = ord($this->readOffset(1, $location_offset));
 
 				if ($sub_flag == 2) {
 					// 国家
-					$country_offset = $this->read_offset(3, $location_offset + 1);
+					$country_offset = $this->readOffset(3, $location_offset + 1);
 					$country_offset = join('', unpack('L', $country_offset . chr(0)));
-					$record['country'] = $this->read_location($country_offset);
+					$record['country'] = $this->readLocation($country_offset);
 					// 地区
-					$record['area'] = $this->read_location($location_offset + 4);
+					$record['area'] = $this->readLocation($location_offset + 4);
 				} else {
-					$record['country'] = $this->read_location($location_offset);
-					$record['area'] = $this->read_location($location_offset + strlen($record['country']) + 1);
+					$record['country'] = $this->readLocation($location_offset);
+					$record['area'] = $this->readLocation($location_offset + strlen($record['country']) + 1);
 				}
 				break;
 			case 2:
 				// 地区
 				// offset + 1(flag) + 3(country offset)
-				$record['area'] = $this->read_location($offset + 4);
+				$record['area'] = $this->readLocation($offset + 4);
 
 				// offset + 1(flag)
-				$country_offset = $this->read_offset(3, $offset + 1);
+				$country_offset = $this->readOffset(3, $offset + 1);
 				$country_offset = join('', unpack('L', $country_offset . chr(0)));
-				$record['country'] = $this->read_location($country_offset);
+				$record['country'] = $this->readLocation($country_offset);
 				break;
 			default:
-				$record['country'] = $this->read_location($offset);
-				$record['area'] = $this->read_location($offset + strlen($record['country']) + 1);
+				$record['country'] = $this->readLocation($offset);
+				$record['area'] = $this->readLocation($offset + strlen($record['country']) + 1);
 		}
 
 		// gb2312 to utf-8（去除无信息时显示的CZ88.NET）
@@ -153,13 +153,13 @@ class QQWry
 	/**
 	 * 读取地区
 	 */
-	protected function read_location($offset)
+	protected function readLocation($offset)
 	{
 		if ($offset == 0) {
 			return '';
 		}
 
-		$flag = ord($this->read_offset(1, $offset));
+		$flag = ord($this->readOffset(1, $offset));
 
 		// 出错
 		if ($flag == 0) {
@@ -168,17 +168,17 @@ class QQWry
 
 		// 仍然为重定向
 		if ($flag == 2) {
-			$offset = $this->read_offset(3, $offset + 1);
+			$offset = $this->readOffset(3, $offset + 1);
 			$offset = join('', unpack('L', $offset . chr(0)));
-			return $this->read_location($offset);
+			return $this->readLocation($offset);
 		}
 
 		$location = '';
-		$chr = $this->read_offset(1, $offset);
+		$chr = $this->readOffset(1, $offset);
 		while (ord($chr) != 0) {
 			$location .= $chr;
 			$offset ++;
-			$chr = $this->read_offset(1, $offset);
+			$chr = $this->readOffset(1, $offset);
 		}
 		return $location;
 	}
@@ -193,7 +193,7 @@ class QQWry
 		}
 		$m = intval(($l + $r) / 2);
 
-		$find = $this->read_offset(4, $this->index_start_offset + $m * 7);
+		$find = $this->readOffset(4, $this->index_start_offset + $m * 7);
 		$m_ip = join('', unpack('L', $find));
 
 		if ($ip_num < $m_ip) {
@@ -203,7 +203,7 @@ class QQWry
 		}
 	}
 
-	protected function read_offset($number_of_bytes, $offset = null)
+	protected function readOffset($number_of_bytes, $offset = null)
 	{
 		if (! is_null($offset)) {
 			fseek($this->fd, $offset);
