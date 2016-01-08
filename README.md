@@ -41,5 +41,5 @@ composer require latrell/qqwry dev-master
 	$ip = mt_rand(); // 取一个随机IP。
 	$ip = QQWry::inet_ntoa($ip); // 将IP转换成文本型格式。
 	$record = QQWry::query($ip); // 取出IP对应的地址。
-	echo "\n", $i, "\t", $ip, "\t", $record['country'], "\t", $record['area']; // 输出结果。
+	echo "\n", $ip, "\t", $record['country'], "\t", $record['area']; // 输出结果。
 ```
