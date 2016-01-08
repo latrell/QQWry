@@ -1,0 +1,22 @@
+{
+    "name": "latrell/qqwry",
+    "description": "纯真 IP 库 Laravel 版 。",
+    "keywords": ["QQWry", "L5", "Laravel 5", "Laravel"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Latrell Chan",
+            "email": "i@latrell.me"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Latrell\\QQWry\\": "src/Latrell/QQWry/"
+        }
+    },
+    "minimum-stability": "stable"
+}
