@@ -1,6 +1,8 @@
 <?php
 namespace Latrell\QQWry;
 
+use Illuminate\Support\Collection;
+
 /**
  * 纯真IP数据库
  *
@@ -52,7 +54,7 @@ class QQWry
 	 */
 	public function ntoa($nip)
 	{
-		$ip = array();
+		$ip = [];
 		for ($i = 3; $i > 0; $i --) {
 			$ip_seg = intval($nip / pow(256, $i));
 			$ip[] = $ip_seg;
@@ -93,10 +95,10 @@ class QQWry
 	 */
 	protected function readRecord($offset)
 	{
-		$record = array(
+		$record = Collection::make([
 			'country' => '',
 			'area' => ''
-		);
+		]);
 
 		$offset = $offset + 4;
 
@@ -113,30 +115,30 @@ class QQWry
 					// 国家
 					$country_offset = $this->readOffset(3, $location_offset + 1);
 					$country_offset = join('', unpack('L', $country_offset . chr(0)));
-					$record['country'] = $this->readLocation($country_offset);
+					$record->country = $this->readLocation($country_offset);
 					// 地区
-					$record['area'] = $this->readLocation($location_offset + 4);
+					$record->area = $this->readLocation($location_offset + 4);
 				} else {
-					$record['country'] = $this->readLocation($location_offset);
-					$record['area'] = $this->readLocation($location_offset + strlen($record['country']) + 1);
+					$record->country = $this->readLocation($location_offset);
+					$record->area = $this->readLocation($location_offset + strlen($record->country) + 1);
 				}
 				break;
 			case 2:
 				// 地区
 				// offset + 1(flag) + 3(country offset)
-				$record['area'] = $this->readLocation($offset + 4);
+				$record->area = $this->readLocation($offset + 4);
 
 				// offset + 1(flag)
 				$country_offset = $this->readOffset(3, $offset + 1);
 				$country_offset = join('', unpack('L', $country_offset . chr(0)));
-				$record['country'] = $this->readLocation($country_offset);
+				$record->country = $this->readLocation($country_offset);
 				break;
 			default:
-				$record['country'] = $this->readLocation($offset);
-				$record['area'] = $this->readLocation($offset + strlen($record['country']) + 1);
+				$record->country = $this->readLocation($offset);
+				$record->area = $this->readLocation($offset + strlen($record->country) + 1);
 		}
 
-		// gb2312 to utf-8（去除无信息时显示的CZ88.NET）
+		// 转换编码并去除无信息时显示的CZ88.NET
 		foreach ($record as $k => $v) {
 			if (function_exists('mb_convert_encoding')) {
 				$v = mb_convert_encoding($v, $this->encoding, 'GBK');
