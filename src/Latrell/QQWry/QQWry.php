@@ -95,10 +95,10 @@ class QQWry
 	 */
 	protected function readRecord($offset)
 	{
-		$record = Collection::make([
+		$record = [
 			'country' => '',
 			'area' => ''
-		]);
+		];
 
 		$offset = $offset + 4;
 
@@ -115,41 +115,40 @@ class QQWry
 					// 国家
 					$country_offset = $this->readOffset(3, $location_offset + 1);
 					$country_offset = join('', unpack('L', $country_offset . chr(0)));
-					$record->country = $this->readLocation($country_offset);
+					$record['country'] = $this->readLocation($country_offset);
 					// 地区
-					$record->area = $this->readLocation($location_offset + 4);
+					$record['area'] = $this->readLocation($location_offset + 4);
 				} else {
-					$record->country = $this->readLocation($location_offset);
-					$record->area = $this->readLocation($location_offset + strlen($record->country) + 1);
+					$record['country'] = $this->readLocation($location_offset);
+					$record['area'] = $this->readLocation($location_offset + strlen($record['country']) + 1);
 				}
 				break;
 			case 2:
 				// 地区
 				// offset + 1(flag) + 3(country offset)
-				$record->area = $this->readLocation($offset + 4);
+				$record['area'] = $this->readLocation($offset + 4);
 
 				// offset + 1(flag)
 				$country_offset = $this->readOffset(3, $offset + 1);
 				$country_offset = join('', unpack('L', $country_offset . chr(0)));
-				$record->country = $this->readLocation($country_offset);
+				$record['country'] = $this->readLocation($country_offset);
 				break;
 			default:
-				$record->country = $this->readLocation($offset);
-				$record->area = $this->readLocation($offset + strlen($record->country) + 1);
+				$record['country'] = $this->readLocation($offset);
+				$record['area'] = $this->readLocation($offset + strlen($record['country']) + 1);
 		}
 
 		// 转换编码并去除无信息时显示的CZ88.NET
-		foreach ($record as $k => $v) {
+		$record = array_map(function ($item) {
 			if (function_exists('mb_convert_encoding')) {
-				$v = mb_convert_encoding($v, $this->encoding, 'GBK');
+				$item = mb_convert_encoding($item, $this->encoding, 'GBK');
 			} else {
-				$v = iconv('GBK', $this->encoding . '//IGNORE', $v);
+				$item = iconv('GBK', $this->encoding . '//IGNORE', $item);
 			}
-			$v = preg_replace('/\s*cz88\.net\s*/i', '', $v);
-			$record[$k] = $v;
-		}
+			return preg_replace('/\s*cz88\.net\s*/i', '', $item);
+		}, $record);
 
-		return $record;
+		return Collection::make($record);
 	}
 
 	/**

@@ -18,7 +18,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
 			$ip = mt_rand();
 			$ip = $this->qqwry->ntoa($ip);
 			$record = $this->qqwry->query($ip);
-			echo "\n", $i, "\t", $ip, "\t", $record->country, "\t", $record->area;
+			echo "\n", $i, "\t", $ip, "\t", $record->get('country'), "\t", $record->get('area');
 		}
 	}
 }
