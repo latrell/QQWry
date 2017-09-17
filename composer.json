@@ -22,15 +22,15 @@
 			"Latrell\\QQWry\\" : "src/Latrell/QQWry/"
 		}
 	},
-	"extra": {
-    "laravel": {
-        "providers": [
-            "Barryvdh\\Debugbar\\ServiceProvider"
-        ],
-        "aliases": {
-            "Debugbar": "Barryvdh\\Debugbar\\Facade"
-        }
-    }
-},
+	"extra" : {
+		"laravel" : {
+			"providers" : [
+				"Latrell\\QQWry\\QQWryServiceProvider"
+			],
+			"aliases" : {
+				"QQWry" : "Latrell\\QQWry\\Facades\\QQWry"
+			}
+		}
+	},
 	"minimum-stability" : "stable"
 }
